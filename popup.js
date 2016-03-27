@@ -1,30 +1,48 @@
 function timerStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
+    document.getElementById('status').textContent = statusText;
+}
+
+function startTimer() {
+    var opts = {
+        type: "basic",
+        iconUrl: "icon.png",
+        title: "Title!",
+        message: "A message, too!"
+    };
+
+    var n = chrome.notifications.create('', opts);
+    n.show();
+}
+
+function start_button_click() {
+
+}
+
+function pause_button_click() {
+
+}
+
+function reset_button_click() {
+
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  getCurrentTabUrl(function(url) {
-    // sets initial status to 20
-    timerStatus('Performing Google Image search for ' + url);
+    var startbutton = document.getElementById('startbutton');
+    startbutton.addEventListener('click', start_button_click);
 
-    getImageUrl(url, function(imageUrl, width, height) {
+    var pausebutton = document.getElementById('pausebutton');
+    pausebutton.addEventListener('click', pause_button_click);
 
-      renderStatus('Search term: ' + url + '\n' +
-          'Google image search result: ' + imageUrl);
-          
-          
-      var imageResult = document.getElementById('image-result');
-      // Explicitly set the width/height to minimize the number of reflows. For
-      // a single image, this does not matter, but if you're going to embed
-      // multiple external images in your page, then the absence of width/height
-      // attributes causes the popup to resize multiple times.
-      imageResult.width = width;
-      imageResult.height = height;
-      imageResult.src = imageUrl;
-      imageResult.hidden = false;
+    var resetbutton = document.getElementById('resetbutton');
+    resetbutton.addEventListener('click', reset_button_click);
 
-    }, function(errorMessage) {
-      renderStatus('Cannot display image. ' + errorMessage);
+    chrome.alarms.get('20MinuteAlarm', function(alarm) {
+        if (alarm) {
+            timerStatus('There is one!');
+        } else {
+            timerStatus('There is not one!');
+        }
     });
-  });
+
+
 });
