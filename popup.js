@@ -27,6 +27,8 @@ function reset_button_click() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var statusdiv = document.getElementById("status");
+
     var startbutton = document.getElementById('startbutton');
     startbutton.addEventListener('click', start_button_click);
 
@@ -38,11 +40,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     chrome.alarms.get('20MinuteAlarm', function(alarm) {
         if (alarm) {
-            timerStatus('There is one!');
+            // set the text to the current time remaining
+            // and set the timer in motion
+            // take into account paused alarms    
         } else {
-            timerStatus('There is not one!');
+            // set timer to its last position
+            // or initial position
+            chrome.storage.local.get("timeleft", function(timeleft) {
+                if (!chrome.runtime.lasterror) {
+                    // no previous time saved.
+                    // set display to 20 minutes
+                } else {
+                    // set display to the value
+
+                }
+            });
         }
     });
-
-
 });
