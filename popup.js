@@ -1,33 +1,78 @@
-// declare widely scoped vars
-var timeleft;
-var alarm;
-var scheduledTime;
+// constants
+const TIMER_LENGTH = 20 * 60000;
+
+// haven't found a more elegant way to clear an interval
+// without keeping the interval in global scope
 var interval;
-var storedtime;
 
-// view members
-var startbutton;
-var resetbutton;
-var statusdiv;
-
-// populate the status div, a view member
+// populates the status div, a view member
 function timerStatus(statusText) {
-    statusdiv.textContent = statusText;
+    var statusDiv = document.getElementById("status");
+    statusDiv.textContent = statusText;
 }
 
-function update_timer() {
-    if (alarm)
-        timeleft = new Date(scheduledTime - Date.now());
-    
-    var minutesleft = timeleft.getMinutes();
-    minutesleft = minutesleft < 10 ? "0" + minutesleft : minutesleft;
+// updates the timer to the time remaining
+function updateTimer() {
+    getTimeLeft(function(timeLeft) {
+        timeLeft = new Date(timeLeft);
+        
+        var minutesLeft = timeLeft.getMinutes();
+        minutesLeft = minutesLeft < 10 ? "0" + minutesLeft : minutesLeft;
 
-    var secondsleft = timeleft.getSeconds();
-    secondsleft = secondsleft < 10 ? "0" + secondsleft : secondsleft;
+        var secondsLeft = timeLeft.getSeconds();
+        secondsLeft = secondsLeft < 10 ? "0" + secondsLeft : secondsLeft;
 
-    var displaystring = minutesleft + ":" + secondsleft;
+        var displaystring = minutesLeft + ":" + secondsLeft;
 
-    timerStatus(displaystring);
+        timerStatus(displaystring);
+    });
+}
+
+// return the time remaining on the timer.
+// if an alarm is set, timeleft is calculated from the alarm,
+// so if the alarm is already over timeleft could be negative.
+// if an alarm is not set, timeleft is pulled from storage.
+// if timeleft is not in storage, use the default value of
+// TIMER_LENGTH.
+function getTimeLeft(callback) {
+    var timeLeft;
+    getAlarm(function(alarm) {
+        if (alarm) {
+            timeLeft = alarm.scheduledTime - Date.now();
+            if (typeof callback === "function")
+                callback(timeLeft);
+        } else {
+            getTimeLeftFromStorage(function(storedTimeLeft) {
+                if (storedTimeLeft) {
+                    timeLeft = storedTimeLeft;
+                } else {
+                    timeLeft = TIMER_LENGTH;
+                }
+                if (typeof callback === "function")
+                    callback(timeLeft);
+            });
+        }
+    });
+}
+
+// used by getTimeLeft to get the timeleft from storage
+function getTimeLeftFromStorage(callback) {
+    var timeLeft;
+    chrome.storage.local.get('20MinuteAlarm', function(items) {
+        if (items['20MinuteAlarm'])
+            timeLeft = items['20MinuteAlarm'];
+        if (typeof callback === "function")
+            callback(timeLeft);
+    });
+}
+
+// gets the alarm. callback fires with undefined 'alarm'
+// argument if no alarm is found.
+function getAlarm(callback) {    
+    chrome.alarms.get('20MinuteAlarm', function(alarm) {
+        if (typeof callback === "function")
+            callback(alarm);
+    });
 }
 
 // dual function start/stop button.
@@ -36,107 +81,65 @@ function start_button_click() {
     // check if the alarm is set
     // if it's set, then stop the interval and clear the alarm
     // if it's not set, then set and start the interval 
+    var startButton = document.getElementById('startbutton');
 
-    // if it exists, it is set, so stop it
-    if (alarm) {
-        // clear the alarm
-        chrome.alarms.clear('20MinuteAlarm');
-        // stop the countdown
-        window.clearInterval(interval);
-        timeleft = alarm.scheduledTime - Date.now();
-        storedtime = (timeleft > 60000) ? timeleft : 60000;
-        alarm = false;
-        // store the result
-        chrome.storage.local.set({
-            'timeleft': storedtime
-        });
-        startbutton.textContent = "Start"
-    }
-    // if it doesn't exist, it's not set, so set the alarm
-    // and set the interval
-    else {
-        chrome.storage.local.get('20MinuteAlarm', function(items) {
-            // start from a stopped timer
-            if (items['20MinuteAlarm']) {
-                scheduledTime = Date.now() + items['20MinuteAlarm'];
+    getTimeLeft(function(timeLeft) {
+        getAlarm(function(alarm) {
+            if (alarm) {
+                chrome.alarms.clear('20MinuteAlarm', function() {
+                    if (interval)
+                        window.clearInterval(interval);
+                    // production chrome apps can't set an alarm less than one minute away
+                    timeLeft = timeLeft > 60000 ? timeLeft : 60000;
+                    console.log('about to store: ' + timeLeft);
+                    chrome.storage.local.set({ '20MinuteAlarm': timeLeft }, function() {
+                        startButton.textContent = "Start";
+                    });
+                });
+            } else {
+                var scheduledTime = Date.now() + timeLeft;
                 chrome.alarms.create('20MinuteAlarm', { 'when': scheduledTime });
+                startbutton.textContent = "Stop";
+                interval = window.setInterval(updateTimer, 1000);
             }
-            // start from 20 minutes
-            else {
-                scheduledTime = Date.now() + (20 * 60000);
-                chrome.alarms.create('20MinuteAlarm', { 'when': scheduledTime });
-            }
-            // update the view every second
-            interval = window.setInterval(update_timer, 1000);
-            alarm = true;
-            // change button text
-            startbutton.textContent = "Stop";
         });
-    }
+    });
 }
 
 function reset_button_click() {
+    var startButton = document.getElementById('startbutton');
     // clear alarms
-    chrome.alarms.clear('20MinuteAlarm');
-
-    // stop countdown
-    window.clearInterval(interval);
-
-    // set timeleft to 20 minutes
-    timeleft = 20 * 6000;
-
-    // clear stored timeleft
-    chrome.storage.local.clear();
-
-    // set the timer status
-    timerStatus("20:00");
-    
-    // enable start button                
-    startbutton.setAttribute('enabled', true);
-
+    chrome.alarms.clear('20MinuteAlarm', function() {
+        chrome.storage.local.clear(function() {
+            window.clearInterval(interval);
+            updateTimer();
+            startButton.setAttribute('enabled', true);
+            startButton.textContent = "Start";
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     // set click handlers
-    startbutton = document.getElementById('startbutton');
+    var startbutton = document.getElementById('startbutton');
     startbutton.addEventListener('click', start_button_click);
 
-    resetbutton = document.getElementById('resetbutton');
+    var resetbutton = document.getElementById('resetbutton');
     resetbutton.addEventListener('click', reset_button_click);
 
-    // vars
-    statusdiv = document.getElementById("status");
-
-    var timeleft;
-
-    // check if alarm has been set.    
-    chrome.alarms.get('20MinuteAlarm', function(palarm) {
-        if (palarm) {
-            alarm = palarm;
-            timeleft = new Date(alarm.scheduledTime - Date.now());
-            // set the text to the current time remaining
-            // and set the timer in motion
-            // take into account paused alarms
-            if (timeleft.getTime() > 0) {
-                scheduledTime = alarm.scheduledTime;
-                interval = window.setInterval(update_timer, 1000);
-                startbutton.textContent = "Stop";
+    getTimeLeft(function(timeLeft) {
+        getAlarm(function(alarm) {
+            if (alarm) {
+                if (timeLeft > 0) {
+                    interval = window.setInterval(updateTimer, 1000);
+                    startbutton.textContent = "Stop";
+                } else {
+                    timerStatus("00:00");
+                    startbutton.setAttribute('disabled', true);
+                }
             } else {
-                timerStatus("00:00");
-                startbutton.setAttribute('disabled', true);
-                alarm = false;
+                updateTimer();
             }
-        } else {
-            chrome.storage.local.get('timeleft', function(items) {
-                if (items['timeleft']) {
-                    timeleft = items['timeleft'];
-                    update_timer();
-                }
-                // start from 20 minutes
-                else {
-                    timerStatus("20:00");
-                }
-            });
-        }
+        });
     });
 });
