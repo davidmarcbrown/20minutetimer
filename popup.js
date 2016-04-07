@@ -1,5 +1,5 @@
 // constants
-const TIMER_LENGTH = Math.floor(0.1 * 60000);
+const TIMER_LENGTH = Math.floor(20 * 60000);
 
 // haven't found a more elegant way to clear an interval
 // without keeping the interval in global scope
@@ -93,12 +93,14 @@ function start_button_click() {
                     timeLeft = timeLeft > 60000 ? timeLeft : 60000;
                     chrome.storage.local.set({ '20MinuteAlarm': timeLeft }, function() {
                         startButton.textContent = "Start";
+                        chrome.browserAction.setBadgeText({ 'text': '' });
                     });
                 });
             } else {
                 var scheduledTime = Date.now() + timeLeft;
                 chrome.alarms.create('20MinuteAlarm', { 'when': scheduledTime });
                 startbutton.textContent = "Stop";
+                chrome.browserAction.setBadgeText({ 'text': 'Set!' });
                 interval = window.setInterval(updateTimer, 1000);
             }
         });
@@ -114,6 +116,7 @@ function reset_button_click() {
             updateTimer();
             startButton.setAttribute('enabled', true);
             startButton.textContent = "Start";
+            chrome.browserAction.setBadgeText({ 'text': '' });
         });
     });
 }
@@ -133,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var resetbutton = document.getElementById('resetbutton');
     resetbutton.addEventListener('click', reset_button_click);
+    
+    // set the badge color
+    chrome.browserAction.setBadgeBackgroundColor({'color': '#006600'});
 
     getTimeLeft(function(timeLeft) {
         getAlarm(function(alarm) {
