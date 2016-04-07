@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "20 Minute Timer",
-    "description": "",
+    "description": "20 Minute Timer is an alarm that fires after twenty minutes.",
     "version": "1.0",
     "browser_action": {
         "default_icon": "icon.png",
@@ -15,5 +15,11 @@
     ],
     "web_accessible_resources": [
         "icon.png"
-    ]
+    ],
+    "app": {
+        "background": {
+            "page": ["eventPage.html"],
+            "persistent": false
+        }
+    }
 }
