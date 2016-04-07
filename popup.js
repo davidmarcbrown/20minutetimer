@@ -1,5 +1,5 @@
 // constants
-const TIMER_LENGTH = 20 * 60000;
+const TIMER_LENGTH = Math.floor(0.1 * 60000);
 
 // haven't found a more elegant way to clear an interval
 // without keeping the interval in global scope
@@ -15,7 +15,7 @@ function timerStatus(statusText) {
 function updateTimer() {
     getTimeLeft(function(timeLeft) {
         timeLeft = new Date(timeLeft);
-        
+
         var minutesLeft = timeLeft.getMinutes();
         minutesLeft = minutesLeft < 10 ? "0" + minutesLeft : minutesLeft;
 
@@ -68,7 +68,7 @@ function getTimeLeftFromStorage(callback) {
 
 // gets the alarm. callback fires with undefined 'alarm'
 // argument if no alarm is found.
-function getAlarm(callback) {    
+function getAlarm(callback) {
     chrome.alarms.get('20MinuteAlarm', function(alarm) {
         if (typeof callback === "function")
             callback(alarm);
@@ -91,7 +91,6 @@ function start_button_click() {
                         window.clearInterval(interval);
                     // production chrome apps can't set an alarm less than one minute away
                     timeLeft = timeLeft > 60000 ? timeLeft : 60000;
-                    console.log('about to store: ' + timeLeft);
                     chrome.storage.local.set({ '20MinuteAlarm': timeLeft }, function() {
                         startButton.textContent = "Start";
                     });
@@ -119,6 +118,14 @@ function reset_button_click() {
     });
 }
 
+// event listeners
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request['20MinuteAlarm'])
+            reset_button_click();
+    });
+
+// run at page load
 document.addEventListener('DOMContentLoaded', function() {
     // set click handlers
     var startbutton = document.getElementById('startbutton');
