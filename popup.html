@@ -8,22 +8,34 @@
             font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
             font-size: 100%;
             text-align: center;
+            padding: 1em;
+            background-color: darkgray;
         }
         
         #status {
             white-space: pre;
             text-overflow: clip;
             overflow: hidden;
-            width: 200px;
+            font-size: 300%;
+            color: white;
+            background-color: darkgreen;
+            border-radius: 25px;
+            margin-bottom: 10px;
+            padding-left: 1em;
+            padding-right: 1em;
+            
+            text-shadow: 2px 2px 10px black;
         }
     </style>
+    <link rel="stylesheet" href="pure-min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="popup.js"></script>
 </head>
 
 <body>
     <div id="status">--:--</div>
-    <button id="startbutton">Start</button>
-    <button id="resetbutton">Reset</button>
+    <button id="startbutton" class="pure-button">Start</button>
+    <button id="resetbutton" class="pure-button">Reset</button>
 </body>
 
 </html>
