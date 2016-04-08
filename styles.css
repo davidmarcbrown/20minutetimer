@@ -1,5 +1,11 @@
+@font-face {
+    font-family: SVBasicManual-Bold;
+    src: local("SVBasicManual-Bold"), url(SVBasicManual-Bold);
+    font-weight: bold;
+}
+
 body {
-    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+    font-family: "SVBasicManual-Bold";
     font-size: 100%;
     text-align: center;
     padding: 1em;
