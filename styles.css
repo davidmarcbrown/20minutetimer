@@ -1,0 +1,27 @@
+body {
+    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+    font-size: 100%;
+    text-align: center;
+    padding: 1em;
+    background-color: darkgray;
+}
+
+#status {
+    width: 100px;
+    white-space: pre;
+    text-overflow: clip;
+    overflow: hidden;
+    font-size: 300%;
+    color: white;
+    background-color: darkgreen;
+    border-radius: 25px;
+    margin-bottom: 10px;
+    padding-left: 1em;
+    padding-right: 1em;
+    text-shadow: 2px 2px 10px black;
+}
+
+.credit {
+    font-size: 50%;
+    margin-bottom: 0px;
+}
