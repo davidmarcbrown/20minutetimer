@@ -10,7 +10,7 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
     options.type = "basic";
     options.title = "20 Minute Timer";
     options.message = "Your 20 minutes are up!";
-    options.iconUrl = "icon.png";
+    options.iconUrl = "icon128.png";
     options.priority = 2;
 
     // callback when notification is created
