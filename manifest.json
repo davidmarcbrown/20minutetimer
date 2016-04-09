@@ -3,7 +3,7 @@
     "name": "20 Minute Timer",
     "short_name": "20 Minute Timer",
     "description": "20 Minute Timer is an alarm that fires after twenty minutes.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "DMBFullstack",
     "browser_action": {
         "default_icon": "icon.png",
