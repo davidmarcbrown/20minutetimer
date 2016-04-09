@@ -14,12 +14,10 @@ function timerStatus(statusText) {
 // updates the timer to the time remaining
 function updateTimer() {
     getTimeLeft(function(timeLeft) {
-        timeLeft = new Date(timeLeft);
-
-        var minutesLeft = timeLeft.getMinutes();
+        var minutesLeft = Math.floor(timeLeft/60000);
         minutesLeft = minutesLeft < 10 ? "0" + minutesLeft : minutesLeft;
 
-        var secondsLeft = timeLeft.getSeconds();
+        var secondsLeft = Math.floor((timeLeft%60000)/1000);
         secondsLeft = secondsLeft < 10 ? "0" + secondsLeft : secondsLeft;
 
         var displaystring = minutesLeft + ":" + secondsLeft;
@@ -103,6 +101,7 @@ function start_button_click() {
                 startbutton.textContent = "Stop";
                 chrome.browserAction.setBadgeBackgroundColor({ 'color': '#006600' });
                 chrome.browserAction.setBadgeText({ 'text': 'Set!' });
+                updateTimer();
                 interval = window.setInterval(updateTimer, 1000);
             }
         });
